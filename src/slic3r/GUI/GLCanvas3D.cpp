@@ -4150,8 +4150,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_E:
 #endif /* __APPLE__ */
         {
-            m_labels.show_layer_labels(!m_labels.are_layer_labels_shown());
-            m_dirty = true;
+            // Don't toggle layer labels when the text tool is typing
+            if (m_gizmos.get_current_type() != GLGizmosManager::EType::Text) {
+                m_labels.show_layer_labels(!m_labels.are_layer_labels_shown());
+                m_dirty = true;
+            }
             break;
         }
 #ifdef __APPLE__
@@ -4196,10 +4199,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
 #endif
         case WXK_ESCAPE: { deselect_all(); break; }
-        // Shift+E to toggle object labels
+        // Shift+E to toggle object labels (not when text gizmo is typing)
         case 'E':
         case 'e': {
-            if ((evt.GetModifiers() & shiftMask) != 0) {
+            if ((evt.GetModifiers() & shiftMask) != 0 &&
+                m_gizmos.get_current_type() != GLGizmosManager::EType::Text) {
                 m_labels.show_object_labels(!m_labels.are_object_labels_shown());
                 m_dirty = true;
                 break;

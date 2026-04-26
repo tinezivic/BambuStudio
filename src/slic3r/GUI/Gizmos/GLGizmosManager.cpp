@@ -1150,9 +1150,12 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         // BBS: Skip all keys when in gizmo. This is necessary for 3D text tool.
         default:
         {
-            //if (is_running() && m_current == EType::Text) {
-            //    processed = true;
-            //}
+            // When the text gizmo is active, mark character events as processed so
+            // they don't leak to canvas keyboard shortcuts. The character has already
+            // been queued for ImGui via update_key_data() -> io.AddInputCharacter().
+            if (is_running() && m_current == EType::Text) {
+                processed = true;
+            }
             break;
         }
         }
@@ -1160,8 +1163,11 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
     if (!processed && !evt.HasModifiers() && !evt.ShiftDown())//single key shortcut
     {
-        if (handle_shortcut(keyCode))
-            processed = true;
+        // Don't activate gizmo shortcuts while the text gizmo is actively used
+        if (!(is_running() && m_current == EType::Text)) {
+            if (handle_shortcut(keyCode))
+                processed = true;
+        }
     }
 
     if (processed)
